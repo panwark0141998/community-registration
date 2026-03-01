@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
@@ -17,10 +17,12 @@ export async function POST(req: NextRequest) {
         // Validate request body
         const validatedData = registerSchema.parse(body);
 
-        // Check if user already exists via Supabase
-        const users = await supabase.from('User').select('id, email').eq('email', validatedData.email).all();
+        // Check if user already exists via Prisma
+        const existingUser = await prisma.user.findUnique({
+            where: { email: validatedData.email }
+        });
 
-        if (users && users.length > 0) {
+        if (existingUser) {
             return NextResponse.json(
                 { error: "User with this email already exists" },
                 { status: 400 }
@@ -31,24 +33,21 @@ export async function POST(req: NextRequest) {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(validatedData.password, salt);
 
-        // Create user object in Supabase
-        const userData = {
-            name: validatedData.name,
-            email: validatedData.email,
-            phone: validatedData.phone,
-            password: hashedPassword,
-            role: "family_rep",
-            status: "pending",
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-
-        const result = await supabase.from('User').insert(userData);
-        const newUser = Array.isArray(result) ? result[0] : userData;
+        // Create user in Neon Postgres via Prisma
+        const newUser = await prisma.user.create({
+            data: {
+                name: validatedData.name,
+                email: validatedData.email,
+                phone: validatedData.phone,
+                password: hashedPassword,
+                role: "family_rep",
+                status: "pending"
+            }
+        });
 
         // Remove password from response
         const userResponse = {
-            id: newUser.id || validatedData.email,
+            id: newUser.id,
             name: newUser.name,
             email: newUser.email,
             role: newUser.role,
@@ -67,3 +66,4 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
+

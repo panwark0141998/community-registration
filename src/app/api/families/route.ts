@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 
-// Middleware to extract user from token (basic simulation)
 const getUserFromToken = (req: NextRequest) => {
     const token = req.cookies.get("token")?.value;
     if (!token) return null;
@@ -30,16 +29,23 @@ export async function POST(req: NextRequest) {
         const prefix = `${statePrefix}${districtPrefix}${villagePrefix}`;
 
         // Find last family with this prefix to get the next sequential number
-        const lastFamilies = await supabase.from('Family')
-            .select('familyId')
-            .like('familyId', `${prefix}%`)
-            .order('familyId', { ascending: false })
-            .limit(1)
-            .all();
+        const lastFamily = await prisma.family.findFirst({
+            where: {
+                familyId: {
+                    startsWith: prefix
+                }
+            },
+            orderBy: {
+                familyId: 'desc'
+            },
+            select: {
+                familyId: true
+            }
+        });
 
         let nextNumber = 1;
-        if (lastFamilies && lastFamilies.length > 0) {
-            const lastId = lastFamilies[0].familyId;
+        if (lastFamily) {
+            const lastId = lastFamily.familyId;
             const lastNumStr = lastId.substring(6);
             const lastNum = parseInt(lastNumStr);
             if (!isNaN(lastNum)) {
@@ -54,10 +60,12 @@ export async function POST(req: NextRequest) {
             familyData.familyId = generatedFamilyId;
         }
 
-        // Check if familyId already exists (manual or generated)
-        const familiesRes = await supabase.from('Family').select('id, familyId').eq('familyId', familyData.familyId).all();
+        // Check if familyId already exists
+        const existingFamily = await prisma.family.findUnique({
+            where: { familyId: familyData.familyId }
+        });
 
-        if (familiesRes && familiesRes.length > 0) {
+        if (existingFamily) {
             return NextResponse.json({ error: "Family ID already exists" }, { status: 400 });
         }
 
@@ -74,7 +82,12 @@ export async function POST(req: NextRequest) {
         }
 
         console.log("Inserting Family Data:", data);
-        const newFamily = await supabase.from('Family').insert(data);
+        const newFamily = await prisma.family.create({
+            data: {
+                ...data,
+                representativeId: user.userId
+            }
+        });
 
         return NextResponse.json({ message: "Family created successfully", family: newFamily, generatedId: generatedFamilyId }, { status: 201 });
     } catch (error: any) {
@@ -94,13 +107,17 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // If admin, return limit of max 50 families to prevent massive payload freeze. 
-        // A proper pagination should be implemented for admin later.
         let families;
         if (user.role === "admin") {
-            families = await supabase.from('Family').select('*').limit(50).all();
+            families = await prisma.family.findMany({
+                take: 50,
+                orderBy: { createdAt: 'desc' }
+            });
         } else {
-            families = await supabase.from('Family').select('*').eq('representativeId', user.userId).all();
+            families = await prisma.family.findMany({
+                where: { representativeId: user.userId },
+                orderBy: { createdAt: 'desc' }
+            });
         }
 
         return NextResponse.json(families, { status: 200 });
@@ -109,3 +126,4 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
+

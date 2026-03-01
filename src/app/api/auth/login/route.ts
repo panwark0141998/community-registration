@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -15,8 +15,10 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Find the user with Supabase
-        const user = await supabase.from('User').select('*').eq('email', email).single();
+        // Find the user with Prisma
+        const user = await prisma.user.findUnique({
+            where: { email }
+        });
 
         if (!user || !user.password) {
             return NextResponse.json(
@@ -85,3 +87,4 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
+
