@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Users, Activity, UserPlus, FileText, MapPin, Building2, Home, ChevronRight } from "lucide-react";
+import { Users, Activity, UserPlus, FileText, MapPin, Building2, Home, ChevronRight, Cake } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function DashboardPage() {
@@ -78,6 +78,55 @@ export default function DashboardPage() {
         </div>
     );
 
+    const BirthdaySection = ({ birthdays }: { birthdays: any[] }) => (
+        <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 h-full">
+            <div className="flex items-center gap-2 mb-4">
+                <div className="p-2 rounded-lg bg-pink-50 dark:bg-pink-900/20">
+                    <Cake className="w-5 h-5 text-pink-500" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Upcoming Birthdays</h3>
+            </div>
+            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                {loading ? (
+                    <p className="text-sm text-gray-400 py-4 text-center">Loading birthdays...</p>
+                ) : birthdays && birthdays.length > 0 ? (
+                    birthdays.map((person, i) => (
+                        <motion.div
+                            key={`${person.name}-${person.familyId}-${i}`}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.1 }}
+                            className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-transparent hover:border-pink-200 dark:hover:border-pink-900/50 transition-all cursor-pointer"
+                            onClick={() => router.push(`/family/${person.familyId}`)}
+                        >
+                            <div>
+                                <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight">{person.name}</p>
+                                <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                                    {person.isHead ? "Head of Family" : "Family Member"}
+                                </p>
+                            </div>
+                            <div className="text-right">
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${person.daysUntil === 0
+                                        ? "bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300"
+                                        : "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
+                                    }`}>
+                                    {person.daysUntil === 0 ? "Today!" : person.daysUntil === 1 ? "Tomorrow" : "In 2 days"}
+                                </span>
+                            </div>
+                        </motion.div>
+                    ))
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-6 text-center">
+                        <div className="w-12 h-12 bg-gray-50 dark:bg-gray-700/50 rounded-full flex items-center justify-center mb-2">
+                            <Cake className="w-6 h-6 text-gray-300" />
+                        </div>
+                        <p className="text-sm text-gray-400">No birthdays in the next 2 days.</p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -114,23 +163,33 @@ export default function DashboardPage() {
                 ))}
             </div>
 
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400 px-1">Browse by Location — click any name to see families</p>
-
+            {/* Birthday Section - Prominent row */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <GeoSection
-                    title="By State"
-                    icon={<MapPin className="w-5 h-5 text-blue-500" />}
-                    color="bg-blue-50 dark:bg-blue-900/20"
-                    items={stats?.geography?.byState || []}
-                    filterKey="state"
-                />
-                <GeoSection
-                    title="By District"
-                    icon={<Building2 className="w-5 h-5 text-purple-500" />}
-                    color="bg-purple-50 dark:bg-purple-900/20"
-                    items={stats?.geography?.byDistrict || []}
-                    filterKey="district"
-                />
+                <div className="lg:col-span-1">
+                    <BirthdaySection birthdays={stats?.upcomingBirthdays || []} />
+                </div>
+                <div className="lg:col-span-2">
+                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 px-1">Browse by Location — click any name to see families</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <GeoSection
+                            title="By State"
+                            icon={<MapPin className="w-5 h-5 text-blue-500" />}
+                            color="bg-blue-50 dark:bg-blue-900/20"
+                            items={stats?.geography?.byState || []}
+                            filterKey="state"
+                        />
+                        <GeoSection
+                            title="By District"
+                            icon={<Building2 className="w-5 h-5 text-purple-500" />}
+                            color="bg-purple-50 dark:bg-purple-900/20"
+                            items={stats?.geography?.byDistrict || []}
+                            filterKey="district"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
                 <GeoSection
                     title="By Village (Gram)"
                     icon={<Home className="w-5 h-5 text-green-500" />}
@@ -142,3 +201,4 @@ export default function DashboardPage() {
         </div>
     );
 }
+
