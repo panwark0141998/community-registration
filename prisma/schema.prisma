@@ -1,0 +1,80 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  @@map("User")
+  email     String   @unique
+  password  String?
+  name      String
+  role      String   @default("family_rep") // admin or family_rep
+  phone     String
+  status    String   @default("pending") // pending, approved, rejected
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  families  Family[]
+}
+
+model Family {
+  id               String   @id @default(cuid())
+  familyId         String   @unique
+  representativeId String
+  representative   User     @relation(fields: [representativeId], references: [id])
+  headOfFamily     String
+  headGender       String?
+  headDob          DateTime?
+  fatherName       String?
+  motherName       String?
+  fatherState      String?
+  fatherDistrict   String?
+  fatherSubDistrict String?
+  fatherVillage    String?
+  fatherPincode    String?
+  fatherPincodeVillages String? // stringified JSON array of auto-fill villages
+  caste            String
+  street           String?
+  village          String?
+  subDistrict      String?
+  district         String   @default("")
+  state            String
+  pincode          String
+  pincodeVillages  String? // stringified JSON array of auto-fill villages
+  contactNumber    String
+  familyPhoto      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  members          Member[]
+}
+
+model Member {
+  id                 String   @id @default(cuid())
+  familyId           String
+  family             Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  fullName           String
+  gender             String
+  dob                DateTime
+  relationshipToHead String
+  fatherName         String?
+  motherName         String?
+  fatherState      String?
+  fatherDistrict   String?
+  fatherSubDistrict String?
+  fatherVillage    String?
+  fatherPincode    String?
+  fatherPincodeVillages String? // stringified JSON array
+  maritalStatus      String   @default("Single")
+  spouseName         String?
+  education          String?
+  occupation         String?
+  bloodGroup         String?
+  isAlive            Boolean  @default(true)
+  memberPhoto        String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
