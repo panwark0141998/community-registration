@@ -15,12 +15,12 @@ async function getAuthUser(req: NextRequest) {
     }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const userId = await getAuthUser(req);
         if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        const postId = params.id;
+        const { id: postId } = await params;
         const body = await req.json();
         const { content, imageUrl } = body;
 
@@ -42,12 +42,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const userId = await getAuthUser(req);
         if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        const postId = params.id;
+        const { id: postId } = await params;
         const post = await prisma.post.findUnique({ where: { id: postId } });
         if (!post) return NextResponse.json({ error: "Post not found" }, { status: 404 });
 

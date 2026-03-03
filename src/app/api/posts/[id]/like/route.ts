@@ -15,12 +15,12 @@ async function getAuthUser(req: NextRequest) {
     }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const userId = await getAuthUser(req);
         if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-        const postId = params.id;
+        const { id: postId } = await params;
 
         const existingLike = await prisma.like.findUnique({
             where: {
