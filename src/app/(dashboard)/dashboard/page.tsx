@@ -114,64 +114,64 @@ export default function DashboardPage() {
                                 className="relative flex flex-col sm:flex-row gap-5 p-5 rounded-2xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 group hover:shadow-md transition-all"
                             >
                                 {/* Photo / Avatar */}
-                                <div className="flex-shrink-0 mx-auto sm:mx-0">
+                                <div className="flex-shrink-0">
                                     {person.photo ? (
                                         <img
                                             src={person.photo}
                                             alt={person.name}
-                                            className="w-20 h-20 rounded-2xl object-cover border-2 border-white dark:border-gray-600 shadow-sm"
+                                            className="w-16 h-16 rounded-xl object-cover border border-gray-100 dark:border-gray-700 shadow-sm"
                                         />
                                     ) : (
-                                        <div className="w-20 h-20 rounded-2xl bg-gray-200 dark:bg-gray-700 flex items-center justify-center border-2 border-white dark:border-gray-600">
-                                            <Users className="w-7 h-7 text-gray-400" />
+                                        <div className="w-16 h-16 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
+                                            <Users className="w-6 h-6 text-gray-400/70" />
                                         </div>
                                     )}
                                 </div>
 
                                 {/* Details */}
-                                <div className="flex-grow space-y-2">
-                                    <div>
-                                        <div className="flex items-center justify-between">
-                                            <h4 className="text-base font-bold text-gray-900 dark:text-white uppercase truncate max-w-[150px]">
+                                <div className="flex-grow min-w-0">
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="min-w-0">
+                                            <h4 className="text-sm font-bold text-gray-900 dark:text-white uppercase truncate">
                                                 {person.name}
                                             </h4>
-                                            {person.daysUntil !== undefined && (
-                                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${person.daysUntil === 0 ? "bg-pink-500 text-white" : "bg-blue-500 text-white"
-                                                    }`}>
-                                                    {person.daysUntil === 0 ? "Today!" : "In " + person.daysUntil + "d"}
-                                                </span>
-                                            )}
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">
+                                                {person.isHead ? "Head of Family" : "Family Member"}
+                                            </p>
                                         </div>
-                                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
-                                            {person.isHead ? "Head of Family" : "Family Member"}
-                                        </p>
+                                        {person.daysUntil !== undefined && (
+                                            <span className={`flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${person.daysUntil === 0 ? "bg-pink-500 text-white" : "bg-blue-500 text-white"
+                                                }`}>
+                                                {person.daysUntil === 0 ? "Today!" : "In " + person.daysUntil + "d"}
+                                            </span>
+                                        )}
                                     </div>
 
-                                    <div className="space-y-1.5">
-                                        <div className="flex items-center gap-2 text-gray-500">
-                                            <Cake className="w-3 h-3 text-pink-400" />
-                                            <span className="text-[11px]">
-                                                {new Date(person.dob).toLocaleDateString()}
-                                                <span className="ml-1 font-bold text-gray-700 dark:text-gray-300">({person.age}y)</span>
+                                    <div className="mt-3 space-y-1">
+                                        <div className="flex items-center gap-2 text-gray-500/80">
+                                            <Cake className="w-3.5 h-3.5 text-pink-400/80" />
+                                            <span className="text-[11px] font-medium leading-none">
+                                                {new Date(person.dob).toLocaleDateString("en-GB")}
+                                                <span className="ml-1 text-gray-900 dark:text-gray-100 font-bold">({person.age}y)</span>
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-2 text-gray-500">
-                                            <Activity className="w-3 h-3 text-blue-400" />
-                                            <a href={`tel:${person.mobile}`} className="text-[11px] hover:text-blue-600 font-medium">
+                                        <div className="flex items-center gap-2 text-gray-500/80">
+                                            <Activity className="w-3.5 h-3.5 text-blue-400/80" />
+                                            <span className="text-[11px] font-medium leading-none">
                                                 {person.mobile || "N/A"}
-                                            </a>
+                                            </span>
                                         </div>
-                                        <div className="flex items-center gap-2 text-gray-500">
-                                            <MapPin className="w-3 h-3 text-green-400" />
-                                            <span className="text-[11px] italic truncate w-full">{person.location}</span>
+                                        <div className="flex items-center gap-2 text-gray-500/80">
+                                            <MapPin className="w-3.5 h-3.5 text-green-400/80" />
+                                            <span className="text-[11px] italic truncate font-medium leading-none">{person.location}</span>
                                         </div>
                                     </div>
 
                                     <button
                                         onClick={() => router.push(`/family/${person.familyId}`)}
-                                        className="pt-1 text-[10px] font-bold text-blue-600 hover:underline flex items-center gap-1"
+                                        className="mt-3 text-[11px] font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1 group/btn"
                                     >
-                                        Profile <ChevronRight className="w-3 h-3" />
+                                        Profile <ChevronRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
                                     </button>
                                 </div>
                             </motion.div>

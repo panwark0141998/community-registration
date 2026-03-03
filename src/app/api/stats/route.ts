@@ -22,13 +22,13 @@ export async function GET(req: NextRequest) {
             select: {
                 id: true, state: true, district: true, village: true,
                 representativeId: true, headOfFamily: true, headDob: true,
-                familyPhoto: true, contactNumber: true
+                familyPhoto: true, contactNumber: true, createdAt: true
             }
         });
         const allMembers = await prisma.member.findMany({
             select: {
                 id: true, fullName: true, dob: true, gender: true,
-                isAlive: true, familyId: true, memberPhoto: true
+                isAlive: true, familyId: true, memberPhoto: true, createdAt: true
             }
         });
 
@@ -133,7 +133,7 @@ export async function GET(req: NextRequest) {
                     mobile: family ? family.contactNumber : "",
                     familyId: m.familyId,
                     isHead: false,
-                    createdAt: (m as any).createdAt || new Date()
+                    createdAt: m.createdAt
                 };
             }),
             ...allFamilies.map(f => ({
@@ -145,7 +145,7 @@ export async function GET(req: NextRequest) {
                 mobile: f.contactNumber,
                 familyId: f.id,
                 isHead: true,
-                createdAt: (f as any).createdAt || new Date()
+                createdAt: f.createdAt
             }))
         ];
 
