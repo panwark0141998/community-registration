@@ -95,12 +95,17 @@ export default function Navbar({ onMenuClick }: { onMenuClick?: () => void }) {
 
                             {user ? (
                                 <>
-                                    <div className="flex items-center gap-2">
+                                    <Link href="/profile" className="flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 p-1.5 rounded-lg transition-colors">
                                         <UserCircle className="w-6 h-6 text-gray-500" />
-                                        <span className="text-sm font-medium text-gray-900 dark:text-white hidden sm:block">
-                                            {user.name} ({user.role})
-                                        </span>
-                                    </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-bold text-gray-900 dark:text-white leading-none">
+                                                {user.name}
+                                            </span>
+                                            <span className="text-[10px] text-gray-500 dark:text-gray-400 font-medium uppercase mt-0.5">
+                                                {user.role}
+                                            </span>
+                                        </div>
+                                    </Link>
                                     <button onClick={handleLogout} className="text-gray-500 hover:text-red-600">
                                         <LogOut className="w-5 h-5" />
                                     </button>
