@@ -27,15 +27,24 @@ export default function PostCard({ post, currentUserId, onUpdate }: { post: Post
     const isAuthor = currentUserId === post.authorId;
 
     const handleLike = async () => {
-        if (!currentUserId || isLiking) return;
+        if (!currentUserId) {
+            alert("Please login to like posts");
+            return;
+        }
+        if (isLiking) return;
+
         setIsLiking(true);
         try {
             const res = await fetch(`/api/posts/${post.id}/like`, { method: "POST" });
             if (res.ok) {
                 onUpdate();
+            } else {
+                const errData = await res.json();
+                alert(errData.error || "Failed to like post");
             }
         } catch (error) {
             console.error("Like error:", error);
+            alert("Something went wrong while liking");
         } finally {
             setIsLiking(false);
         }
@@ -145,10 +154,10 @@ export default function PostCard({ post, currentUserId, onUpdate }: { post: Post
                 <div className="flex items-center space-x-6">
                     <button
                         onClick={handleLike}
-                        disabled={!currentUserId || isLiking}
+                        disabled={isLiking}
                         className={`group flex items-center space-x-2 text-sm font-medium transition-colors ${post.isLiked
-                                ? "text-pink-600"
-                                : "text-gray-500 hover:text-pink-600 dark:text-gray-400"
+                            ? "text-pink-600"
+                            : "text-gray-500 hover:text-pink-600 dark:text-gray-400"
                             }`}
                     >
                         <div className={`p-2 rounded-full transition-colors ${post.isLiked ? "bg-pink-50 dark:bg-pink-900/20" : "group-hover:bg-pink-50 dark:group-hover:bg-pink-900/20"
