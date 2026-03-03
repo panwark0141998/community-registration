@@ -22,6 +22,9 @@ export default function PostCard({ post, currentUserId, onUpdate }: { post: Post
     const [isLiking, setIsLiking] = useState(false);
     const [isSharing, setIsSharing] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editContent, setEditContent] = useState(post.content);
+    const [isUpdating, setIsUpdating] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
 
     const isAuthor = currentUserId === post.authorId;
@@ -67,6 +70,31 @@ export default function PostCard({ post, currentUserId, onUpdate }: { post: Post
             console.error("Share error:", error);
         } finally {
             setIsSharing(false);
+        }
+    };
+
+    const handleUpdate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editContent.trim()) return;
+        setIsUpdating(true);
+        try {
+            const res = await fetch(`/api/posts/${post.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ content: editContent }),
+            });
+            if (res.ok) {
+                setIsEditing(false);
+                onUpdate();
+            } else {
+                const err = await res.json();
+                alert(err.error || "Failed to update post");
+            }
+        } catch (error) {
+            console.error("Update error:", error);
+            alert("Something went wrong");
+        } finally {
+            setIsUpdating(false);
         }
     };
 
@@ -121,6 +149,13 @@ export default function PostCard({ post, currentUserId, onUpdate }: { post: Post
 
                             {showOptions && (
                                 <div className="absolute right-0 mt-2 w-36 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 z-10 py-2">
+                                    <button
+                                        onClick={() => { setIsEditing(true); setShowOptions(false); }}
+                                        className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center space-x-2"
+                                    >
+                                        <Edit2 className="w-4 h-4" />
+                                        <span>Edit Post</span>
+                                    </button>
                                     <button
                                         onClick={handleDelete}
                                         disabled={isDeleting}
@@ -183,6 +218,43 @@ export default function PostCard({ post, currentUserId, onUpdate }: { post: Post
                     Live Update
                 </div>
             </div>
+
+            {/* Edit Modal */}
+            {isEditing && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+                        <div className="p-6">
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Edit Post</h3>
+                            <form onSubmit={handleUpdate}>
+                                <textarea
+                                    value={editContent}
+                                    onChange={(e) => setEditContent(e.target.value)}
+                                    className="w-full h-32 p-4 rounded-xl border border-gray-200 dark:border-gray-700 dark:bg-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none resize-none mb-4"
+                                    placeholder="What's on your mind?"
+                                    required
+                                />
+                                <div className="flex justify-end space-x-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsEditing(false)}
+                                        className="px-4 py-2 text-sm font-semibold text-gray-500 hover:text-gray-700"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isUpdating}
+                                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl font-bold text-sm flex items-center space-x-2 disabled:bg-blue-400"
+                                    >
+                                        {isUpdating && <Loader2 className="w-4 h-4 animate-spin" />}
+                                        <span>Save Changes</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
