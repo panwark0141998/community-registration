@@ -148,7 +148,11 @@ const translations: Translations = {
         changeName: "Change Name",
         editName: "Edit Name",
         newName: "New Name",
-        nameUpdated: "Name updated successfully"
+        nameUpdated: "Name updated successfully",
+        updatePhoto: "Update Photo",
+        editPhone: "Edit Phone",
+        phoneUpdated: "Phone number updated successfully",
+        photoUpdated: "Profile photo updated successfully"
     },
     hi: {
         dashboard: "डैशबोर्ड",
@@ -287,7 +291,11 @@ const translations: Translations = {
         changeName: "नाम बदलें",
         editName: "नाम संपादित करें",
         newName: "नया नाम",
-        nameUpdated: "नाम सफलतापूर्वक अपडेट किया गया"
+        nameUpdated: "नाम सफलतापूर्वक अपडेट किया गया",
+        updatePhoto: "फोटो अपडेट करें",
+        editPhone: "फोन नंबर संपादित करें",
+        phoneUpdated: "फ़ोन नंबर सफलतापूर्वक अपडेट किया गया",
+        photoUpdated: "प्रोफ़ाइल फ़ोटो सफलतापूर्वक अपडेट की गई"
     },
     gu: {
         dashboard: "ડેશબોર્ડ",
@@ -426,7 +434,11 @@ const translations: Translations = {
         changeName: "નામ બદલો",
         editName: "નામ સંપાદિત કરો",
         newName: "નવું નામ",
-        nameUpdated: "નામ સફળતાપૂર્વક અપડેટ થયું"
+        nameUpdated: "નામ સફળતાપૂર્વક અપડેટ થયું",
+        updatePhoto: "ફોટો અપડેટ કરો",
+        editPhone: "ફોન નંબર સંપાદિત કરો",
+        phoneUpdated: "ફોન નંબર સફળતાપૂર્વક અપડેટ થયો",
+        photoUpdated: "પ્રોફાઇલ ફોટો સફળતાપૂર્વક અપડેટ થયો"
     }
 };
 

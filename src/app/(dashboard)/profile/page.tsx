@@ -1,17 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { User, Mail, Phone, Shield, Lock, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { User, Mail, Phone, Shield, Lock, CheckCircle, AlertCircle, Loader2, Camera, Edit2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { compressImage } from "@/utils/imageCompression";
 
 export default function ProfilePage() {
     const { t } = useLanguage();
     const [user, setUser] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Profile Update State
     const [isEditingName, setIsEditingName] = useState(false);
     const [newName, setNewName] = useState("");
+
+    const [isEditingPhone, setIsEditingPhone] = useState(false);
+    const [newPhone, setNewPhone] = useState("");
+
+    const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
     // Change Password State
     const [currentPassword, setCurrentPassword] = useState("");
@@ -28,6 +35,7 @@ export default function ProfilePage() {
                     const data = await res.json();
                     setUser(data.user);
                     setNewName(data.user.name);
+                    setNewPhone(data.user.phone || "");
                 }
             } catch (error) {
                 console.error("Fetch user error:", error);
@@ -38,37 +46,76 @@ export default function ProfilePage() {
         fetchUser();
     }, []);
 
-    const handleUpdateName = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newName.trim() || newName === user.name) {
-            setIsEditingName(false);
-            return;
-        }
-
+    const handleUpdateProfile = async (data: any) => {
         setIsUpdating(true);
         setMessage({ type: "", text: "" });
         try {
             const res = await fetch("/api/auth/update-profile", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: newName }),
+                body: JSON.stringify(data),
             });
 
             if (res.ok) {
-                const data = await res.json();
-                setUser(data.user);
-                setMessage({ type: "success", text: t("nameUpdated") });
-                setIsEditingName(false);
-                window.location.reload();
+                const result = await res.json();
+                setUser(result.user);
+                if (data.name) setMessage({ type: "success", text: t("nameUpdated") });
+                if (data.phone) setMessage({ type: "success", text: t("phoneUpdated") });
+                if (data.image) setMessage({ type: "success", text: t("photoUpdated") });
+
+                if (data.name) {
+                    // Force refresh for navbar name after info shows
+                    setTimeout(() => window.location.reload(), 1500);
+                }
             } else {
-                const data = await res.json();
-                setMessage({ type: "error", text: data.error || "Failed to update name" });
+                const result = await res.json();
+                setMessage({ type: "error", text: result.error || "Failed to update profile" });
             }
         } catch (error) {
             setMessage({ type: "error", text: "Something went wrong" });
         } finally {
             setIsUpdating(false);
+            setIsEditingName(false);
+            setIsEditingPhone(false);
+            setIsUploadingPhoto(false);
         }
+    };
+
+    const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsUploadingPhoto(true);
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+            const base64 = reader.result as string;
+            try {
+                const compressed = await compressImage(base64, 400, 400, 0.6);
+                await handleUpdateProfile({ image: compressed });
+            } catch (err) {
+                console.error("Compression failed", err);
+                await handleUpdateProfile({ image: base64 });
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleUpdateName = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newName.trim() || newName === user.name) {
+            setIsEditingName(false);
+            return;
+        }
+        handleUpdateProfile({ name: newName });
+    };
+
+    const handleUpdatePhone = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newPhone.trim() || newPhone === user.phone) {
+            setIsEditingPhone(false);
+            return;
+        }
+        handleUpdateProfile({ phone: newPhone });
     };
 
     const handleChangePassword = async (e: React.FormEvent) => {
@@ -122,11 +169,30 @@ export default function ProfilePage() {
                     <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                         <div className="h-24 bg-gradient-to-r from-blue-600 to-indigo-700"></div>
                         <div className="px-6 pb-6">
-                            <div className="relative -mt-12 mb-4">
-                                <div className="bg-white dark:bg-gray-800 p-1.5 rounded-full inline-block shadow-md">
-                                    <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-full">
-                                        <User className="w-12 h-12 text-blue-600 dark:text-blue-400" />
+                            <div className="relative -mt-12 mb-4 group">
+                                <div className="bg-white dark:bg-gray-800 p-1.5 rounded-full inline-block shadow-md relative overflow-hidden">
+                                    <div className="bg-blue-50 dark:bg-blue-900/30 w-24 h-24 rounded-full flex items-center justify-center overflow-hidden">
+                                        {isUploadingPhoto ? (
+                                            <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                                        ) : user?.image ? (
+                                            <img src={user.image} alt={user.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <User className="w-12 h-12 text-blue-600 dark:text-blue-400" />
+                                        )}
                                     </div>
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                    >
+                                        <Camera className="w-6 h-6 text-white" />
+                                    </button>
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        className="hidden"
+                                        accept="image/*"
+                                        onChange={handlePhotoChange}
+                                    />
                                 </div>
                             </div>
 
@@ -164,7 +230,7 @@ export default function ProfilePage() {
                                             className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-400 hover:text-blue-600 transition-colors"
                                             title={t("editName")}
                                         >
-                                            <Shield className="w-4 h-4" />
+                                            <Edit2 className="w-4 h-4" />
                                         </button>
                                     </>
                                 )}
@@ -174,16 +240,38 @@ export default function ProfilePage() {
                             <div className="space-y-4 pt-4 border-t border-gray-50 dark:border-gray-700">
                                 <div className="flex items-center gap-3">
                                     <Mail className="w-4 h-4 text-gray-400" />
-                                    <div>
+                                    <div className="flex-1 min-w-0">
                                         <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter leading-none mb-1">{t("email")}</p>
-                                        <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">{user?.email}</p>
+                                        <p className="text-sm text-gray-700 dark:text-gray-300 font-medium truncate">{user?.email}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <Phone className="w-4 h-4 text-gray-400" />
-                                    <div>
-                                        <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter leading-none mb-1">{t("phone")}</p>
-                                        <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">{user?.phone || "N/A"}</p>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter leading-none mb-1">{t("phone")}</p>
+                                            {!isEditingPhone && (
+                                                <button onClick={() => setIsEditingPhone(true)} className="text-blue-600 hover:text-blue-700">
+                                                    <Edit2 className="w-3 h-3" />
+                                                </button>
+                                            )}
+                                        </div>
+                                        {isEditingPhone ? (
+                                            <form onSubmit={handleUpdatePhone} className="flex gap-1 mt-1">
+                                                <input
+                                                    type="text"
+                                                    value={newPhone}
+                                                    onChange={(e) => setNewPhone(e.target.value)}
+                                                    className="w-full p-1 text-xs border rounded outline-none focus:ring-1 focus:ring-blue-500"
+                                                    autoFocus
+                                                />
+                                                <button type="submit" className="bg-blue-600 text-white p-1 rounded">
+                                                    <CheckCircle className="w-3 h-3" />
+                                                </button>
+                                            </form>
+                                        ) : (
+                                            <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">{user?.phone || "N/A"}</p>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
