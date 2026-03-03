@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, UserPlus, Search, Settings } from "lucide-react";
+import { LayoutDashboard, Rss, Users, UserPlus, Search, Settings } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function Sidebar({ isOpen }: { isOpen: boolean }) {
@@ -28,6 +28,7 @@ export default function Sidebar({ isOpen }: { isOpen: boolean }) {
 
     const menuItems = [
         { name: t("dashboard"), href: "/dashboard", icon: LayoutDashboard },
+        { name: t("feed"), href: "/feed", icon: Rss },
         { name: t("myFamily"), href: "/family", icon: Users },
         { name: t("addMember"), href: "/family/add-member", icon: UserPlus },
         { name: t("search"), href: "/search", icon: Search },

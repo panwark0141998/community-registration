@@ -13,6 +13,7 @@ interface Translations {
 const translations: Translations = {
     en: {
         dashboard: "Dashboard",
+        feed: "Community Feed",
         myFamily: "My Family",
         addMember: "Add Member",
         search: "Search",
@@ -132,6 +133,7 @@ const translations: Translations = {
     },
     hi: {
         dashboard: "डैशबोर्ड",
+        feed: "सामुदायिक फीड",
         myFamily: "मेरा परिवार",
         addMember: "सदस्य जोड़ें",
         search: "खोजें",
@@ -251,6 +253,7 @@ const translations: Translations = {
     },
     gu: {
         dashboard: "ડેશબોર્ડ",
+        feed: "સમુદાય ફીડ",
         myFamily: "મારો પરિવાર",
         addMember: "સભ્ય ઉમેરો",
         search: "શોધ",

@@ -19,6 +19,7 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   families  Family[]
+  posts     Post[]
 }
 
 model Family {
@@ -90,4 +91,13 @@ model Location {
   updatedAt   DateTime @updatedAt
 
   @@index([state, district, subDistrict, village])
+}
+model Post {
+  id        String   @id @default(cuid())
+  content   String
+  imageUrl  String?
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
