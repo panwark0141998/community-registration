@@ -168,7 +168,7 @@ export default function DashboardPage() {
                                     </div>
 
                                     <button
-                                        onClick={() => router.push(`/family/${person.familyId}`)}
+                                        onClick={() => router.push(`/member/${person.id}`)}
                                         className="mt-3 text-[11px] font-bold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1 group/btn"
                                     >
                                         Profile <ChevronRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform" />

@@ -84,6 +84,7 @@ export async function GET(req: NextRequest) {
                             location: extra.location,
                             daysUntil: i,
                             familyId,
+                            id: extra.memberId || familyId,
                             isHead
                         });
                     }
@@ -96,7 +97,7 @@ export async function GET(req: NextRequest) {
             const family = allFamilies.find(f => f.id === m.familyId);
             const location = family ? `${family.village}, ${family.district}, ${family.state}` : "";
             const mobile = family ? family.contactNumber : "";
-            checkBirthday(m.dob, m.fullName, m.familyId, { photo: m.memberPhoto, location, mobile });
+            checkBirthday(m.dob, m.fullName, m.familyId, { photo: m.memberPhoto, location, mobile, memberId: m.id });
         });
 
         // Check heads
@@ -132,6 +133,7 @@ export async function GET(req: NextRequest) {
                     location: family ? `${family.village}, ${family.district}, ${family.state}` : "",
                     mobile: family ? family.contactNumber : "",
                     familyId: m.familyId,
+                    id: m.id,
                     isHead: false,
                     createdAt: m.createdAt
                 };
@@ -144,6 +146,7 @@ export async function GET(req: NextRequest) {
                 location: `${f.village}, ${f.district}, ${f.state}`,
                 mobile: f.contactNumber,
                 familyId: f.id,
+                id: f.id, // Using family id as the fallback for "head" profile
                 isHead: true,
                 createdAt: f.createdAt
             }))

@@ -323,6 +323,7 @@ export default function FamilyDetailsPage({ params }: { params: Promise<{ id: st
                         family={familyData}
                         member={member}
                         calculateAge={calculateAge}
+                        isPdf={true}
                     />
                 ))}
             </div>
