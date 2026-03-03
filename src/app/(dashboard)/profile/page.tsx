@@ -9,6 +9,10 @@ export default function ProfilePage() {
     const [user, setUser] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
 
+    // Profile Update State
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [newName, setNewName] = useState("");
+
     // Change Password State
     const [currentPassword, setCurrentPassword] = useState("");
     const [newPassword, setNewPassword] = useState("");
@@ -23,6 +27,7 @@ export default function ProfilePage() {
                 if (res.ok) {
                     const data = await res.json();
                     setUser(data.user);
+                    setNewName(data.user.name);
                 }
             } catch (error) {
                 console.error("Fetch user error:", error);
@@ -32,6 +37,39 @@ export default function ProfilePage() {
         };
         fetchUser();
     }, []);
+
+    const handleUpdateName = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newName.trim() || newName === user.name) {
+            setIsEditingName(false);
+            return;
+        }
+
+        setIsUpdating(true);
+        setMessage({ type: "", text: "" });
+        try {
+            const res = await fetch("/api/auth/update-profile", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: newName }),
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setUser(data.user);
+                setMessage({ type: "success", text: t("nameUpdated") });
+                setIsEditingName(false);
+                window.location.reload();
+            } else {
+                const data = await res.json();
+                setMessage({ type: "error", text: data.error || "Failed to update name" });
+            }
+        } catch (error) {
+            setMessage({ type: "error", text: "Something went wrong" });
+        } finally {
+            setIsUpdating(false);
+        }
+    };
 
     const handleChangePassword = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -126,7 +164,7 @@ export default function ProfilePage() {
                                             className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-400 hover:text-blue-600 transition-colors"
                                             title={t("editName")}
                                         >
-                                            <Shield className="w-4 h-4" /> {/* Swap with more appropriate icon if needed, but Shield is already imported */}
+                                            <Shield className="w-4 h-4" />
                                         </button>
                                     </>
                                 )}
@@ -153,7 +191,7 @@ export default function ProfilePage() {
                                     <div>
                                         <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter leading-none mb-1">{t("userStatus")}</p>
                                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${user?.status === "approved" ? "bg-green-100 text-green-700" :
-                                            user?.status === "pending" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"
+                                                user?.status === "pending" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"
                                             }`}>
                                             {t(user?.status || "pending")}
                                         </span>
@@ -217,8 +255,8 @@ export default function ProfilePage() {
 
                             {message.text && (
                                 <div className={`flex items-center gap-3 p-4 rounded-xl ${message.type === "success"
-                                    ? "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"
-                                    : "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
+                                        ? "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"
+                                        : "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
                                     }`}>
                                     {message.type === "success" ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                                     <p className="text-sm font-medium">{message.text}</p>
