@@ -17,6 +17,7 @@ async function getAuthUser(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
     try {
+        const userId = await getAuthUser(req);
         const posts = await prisma.post.findMany({
             orderBy: { createdAt: "desc" },
             include: {
@@ -24,11 +25,35 @@ export async function GET(req: NextRequest) {
                     select: {
                         id: true,
                         name: true,
+                        image: true,
                     },
                 },
+                _count: {
+                    select: {
+                        likes: true,
+                    },
+                },
+                likes: userId ? {
+                    where: {
+                        userId: userId,
+                    },
+                    select: {
+                        userId: true,
+                    },
+                } : false,
             },
         });
-        return NextResponse.json({ posts }, { status: 200 });
+
+        // Map to a cleaner format
+        const formattedPosts = posts.map(post => ({
+            ...post,
+            likeCount: post._count.likes,
+            isLiked: userId ? post.likes.length > 0 : false,
+            likes: undefined,
+            _count: undefined,
+        }));
+
+        return NextResponse.json({ posts: formattedPosts }, { status: 200 });
     } catch (error) {
         console.error("Fetch Posts Error:", error);
         return NextResponse.json({ error: "Failed to fetch posts" }, { status: 500 });
@@ -60,12 +85,19 @@ export async function POST(req: NextRequest) {
                     select: {
                         id: true,
                         name: true,
+                        image: true,
                     },
                 },
             },
         });
 
-        return NextResponse.json({ post }, { status: 201 });
+        return NextResponse.json({
+            post: {
+                ...post,
+                likeCount: 0,
+                isLiked: false,
+            }
+        }, { status: 201 });
     } catch (error) {
         console.error("Create Post Error:", error);
         return NextResponse.json({ error: "Failed to create post" }, { status: 500 });

@@ -8,24 +8,33 @@ import { Loader2, Rss } from "lucide-react";
 export default function FeedPage() {
     const [posts, setPosts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [currentUser, setCurrentUser] = useState<any>(null);
 
-    const fetchPosts = async () => {
+    const fetchData = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch("/api/posts");
-            if (res.ok) {
-                const data = await res.json();
-                setPosts(data.posts);
+            // Fetch User
+            const userRes = await fetch("/api/auth/me");
+            if (userRes.ok) {
+                const userData = await userRes.json();
+                setCurrentUser(userData.user);
+            }
+
+            // Fetch Posts
+            const postsRes = await fetch("/api/posts");
+            if (postsRes.ok) {
+                const postsData = await postsRes.json();
+                setPosts(postsData.posts);
             }
         } catch (error) {
-            console.error("Fetch posts error:", error);
+            console.error("Fetch data error:", error);
         } finally {
             setIsLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchPosts();
+        fetchData();
     }, []);
 
     return (
@@ -37,7 +46,7 @@ export default function FeedPage() {
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">Community Feed</h1>
             </div>
 
-            <CreatePost onPostCreated={fetchPosts} />
+            <CreatePost onPostCreated={fetchData} />
 
             {isLoading ? (
                 <div className="flex flex-col items-center justify-center py-20">
@@ -47,7 +56,12 @@ export default function FeedPage() {
             ) : posts.length > 0 ? (
                 <div className="space-y-6">
                     {posts.map((post: any) => (
-                        <PostCard key={post.id} post={post} />
+                        <PostCard
+                            key={post.id}
+                            post={post}
+                            currentUserId={currentUser?.id}
+                            onUpdate={fetchData}
+                        />
                     ))}
                 </div>
             ) : (

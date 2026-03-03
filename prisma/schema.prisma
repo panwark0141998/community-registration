@@ -20,6 +20,7 @@ model User {
   updatedAt DateTime @updatedAt
   families  Family[]
   posts     Post[]
+  likes     Like[]
 
   @@map("User")
 }
@@ -86,10 +87,23 @@ model Post {
   id        String   @id @default(cuid())
   content   String
   imageUrl  String?
+  shares    Int      @default(0)
   authorId  String
   author    User     @relation(fields: [authorId], references: [id])
+  likes     Like[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
 }
 
 model Location {
