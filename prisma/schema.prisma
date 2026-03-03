@@ -9,75 +9,86 @@ datasource db {
 
 model User {
   id        String   @id @default(cuid())
-  @@map("User")
   email     String   @unique
   password  String?
   name      String
-  role      String   @default("family_rep") // admin or family_rep
+  role      String   @default("family_rep")
   phone     String
-  status    String   @default("pending") // pending, approved, rejected
+  status    String   @default("pending")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   families  Family[]
   posts     Post[]
+
+  @@map("User")
 }
 
 model Family {
-  id               String   @id @default(cuid())
-  familyId         String   @unique
-  representativeId String
-  representative   User     @relation(fields: [representativeId], references: [id])
-  headOfFamily     String
-  headGender       String?
-  headDob          DateTime?
-  fatherName       String?
-  motherName       String?
-  fatherState      String?
-  fatherDistrict   String?
-  fatherSubDistrict String?
-  fatherVillage    String?
-  fatherPincode    String?
-  fatherPincodeVillages String? // stringified JSON array of auto-fill villages
-  caste            String
-  street           String?
-  village          String?
-  subDistrict      String?
-  district         String   @default("")
-  state            String
-  pincode          String
-  pincodeVillages  String? // stringified JSON array of auto-fill villages
-  contactNumber    String
-  familyPhoto      String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  members          Member[]
+  id                    String    @id @default(cuid())
+  familyId              String    @unique
+  representativeId      String
+  headOfFamily          String
+  headGender            String?
+  headDob               DateTime?
+  fatherName            String?
+  motherName            String?
+  fatherState           String?
+  fatherDistrict        String?
+  fatherSubDistrict     String?
+  fatherVillage         String?
+  fatherPincode         String?
+  fatherPincodeVillages String?
+  caste                 String
+  street                String?
+  village               String?
+  subDistrict           String?
+  district              String    @default("")
+  state                 String
+  pincode               String
+  pincodeVillages       String?
+  contactNumber         String
+  familyPhoto           String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  representative        User      @relation(fields: [representativeId], references: [id])
+  members               Member[]
 }
 
 model Member {
-  id                 String   @id @default(cuid())
-  familyId           String
-  family             Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  fullName           String
-  gender             String
-  dob                DateTime
-  relationshipToHead String
-  fatherName         String?
-  motherName         String?
-  fatherState      String?
-  fatherDistrict   String?
-  fatherSubDistrict String?
-  fatherVillage    String?
-  fatherPincode    String?
-  fatherPincodeVillages String? // stringified JSON array
-  maritalStatus      String   @default("Single")
-  spouseName         String?
-  education          String?
-  occupation         String?
-  bloodGroup         String?
-  isAlive            Boolean  @default(true)
-  memberPhoto        String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                    String   @id @default(cuid())
+  familyId              String
+  fullName              String
+  gender                String
+  dob                   DateTime
+  relationshipToHead    String
+  fatherName            String?
+  motherName            String?
+  fatherState           String?
+  fatherDistrict        String?
+  fatherSubDistrict     String?
+  fatherVillage         String?
+  fatherPincode         String?
+  fatherPincodeVillages String?
+  maritalStatus         String   @default("Single")
+  spouseName            String?
+  education             String?
+  occupation            String?
+  bloodGroup            String?
+  isAlive               Boolean  @default(true)
+  memberPhoto           String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  family                Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  content   String
+  imageUrl  String?
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Location {
@@ -91,13 +102,4 @@ model Location {
   updatedAt   DateTime @updatedAt
 
   @@index([state, district, subDistrict, village])
-}
-model Post {
-  id        String   @id @default(cuid())
-  content   String
-  imageUrl  String?
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
