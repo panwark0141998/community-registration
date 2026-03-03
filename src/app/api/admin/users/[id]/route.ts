@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 
 const getUserFromToken = (req: NextRequest) => {
@@ -27,9 +27,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
             return NextResponse.json({ error: "Invalid status" }, { status: 400 });
         }
 
-        const updatedUser = await supabase.from('User')
-            .update({ status })
-            .eq('id', id);
+        const updatedUser = await prisma.user.update({
+            where: { id },
+            data: { status }
+        });
 
         if (!updatedUser) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -41,3 +42,4 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
+

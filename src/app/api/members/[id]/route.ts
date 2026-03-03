@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 
 const getUserFromToken = (req: NextRequest) => {
@@ -18,10 +18,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const { id } = await params;
-        const member = await supabase.from('Member')
-            .select('*,family:Family(*)')
-            .eq('id', id)
-            .single();
+        const member = await prisma.member.findUnique({
+            where: { id },
+            include: { family: true }
+        });
 
         if (!member) return NextResponse.json({ error: "Member not found" }, { status: 404 });
 
@@ -45,10 +45,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         const { id } = await params;
         const body = await req.json();
 
-        const member = await supabase.from('Member')
-            .select('*,family:Family(*)')
-            .eq('id', id)
-            .single();
+        const member = await prisma.member.findUnique({
+            where: { id },
+            include: { family: true }
+        });
 
         if (!member) return NextResponse.json({ error: "Member not found" }, { status: 404 });
 
@@ -76,9 +76,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             updateData.dob = isNaN(date.getTime()) ? null : date;
         }
 
-        const updatedMember = await supabase.from('Member')
-            .update(updateData)
-            .eq('id', id);
+        const updatedMember = await prisma.member.update({
+            where: { id },
+            data: updateData
+        });
 
         return NextResponse.json({ message: "Member updated", member: updatedMember });
     } catch (error) {
@@ -93,10 +94,10 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
         const { id } = await params;
-        const member = await supabase.from('Member')
-            .select('*,family:Family(*)')
-            .eq('id', id)
-            .single();
+        const member = await prisma.member.findUnique({
+            where: { id },
+            include: { family: true }
+        });
 
         if (!member) return NextResponse.json({ error: "Member not found" }, { status: 404 });
 
@@ -104,13 +105,17 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
-        await supabase.from('Member')
-            .delete()
-            .eq('id', id);
+        await prisma.member.delete({
+            where: { id }
+        });
 
         return NextResponse.json({ message: "Member deleted successfully" });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Member DELETE Error:", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        return NextResponse.json({
+            error: error.message || "Internal Server Error",
+            details: error.code ? `Prisma Error Code: ${error.code}` : undefined
+        }, { status: 500 });
     }
 }
+

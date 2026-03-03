@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 
 export async function GET(req: NextRequest) {
@@ -12,10 +12,10 @@ export async function GET(req: NextRequest) {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET || "fallback_secret") as { userId: string; role: string };
 
-        const user = await supabase.from('User')
-            .select('id, name, email, role, status')
-            .eq('id', decoded.userId)
-            .single();
+        const user = await prisma.user.findUnique({
+            where: { id: decoded.userId },
+            select: { id: true, name: true, email: true, role: true, status: true }
+        });
 
         if (!user) {
             return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -27,3 +27,4 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 }
+

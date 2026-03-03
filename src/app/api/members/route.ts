@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 
 const getUserFromToken = (req: NextRequest) => {
@@ -19,8 +19,10 @@ export async function POST(req: NextRequest) {
 
         const body = await req.json();
 
-        // Verify family belongs to this user or user is admin via Supabase
-        const family = await supabase.from('Family').select('*').eq('id', body.familyId).single();
+        // Verify family belongs to this user or user is admin via Prisma
+        const family = await prisma.family.findUnique({
+            where: { id: body.familyId }
+        });
 
         if (!family) {
             return NextResponse.json({ error: "Family not found" }, { status: 404 });
@@ -49,7 +51,9 @@ export async function POST(req: NextRequest) {
             creationData.dob = new Date(creationData.dob);
         }
 
-        const newMember = await supabase.from('Member').insert(creationData);
+        const newMember = await prisma.member.create({
+            data: creationData
+        });
 
         return NextResponse.json({ message: "Member added successfully", member: newMember }, { status: 201 });
     } catch (error) {
@@ -57,3 +61,4 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
+

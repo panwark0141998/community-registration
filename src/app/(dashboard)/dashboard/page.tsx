@@ -78,54 +78,117 @@ export default function DashboardPage() {
         </div>
     );
 
-    const BirthdaySection = ({ birthdays }: { birthdays: any[] }) => (
-        <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 h-full">
-            <div className="flex items-center gap-2 mb-4">
-                <div className="p-2 rounded-lg bg-pink-50 dark:bg-pink-900/20">
-                    <Cake className="w-5 h-5 text-pink-500" />
+    const MemberDetailSection = ({
+        title, subtitle, items, icon, colorClass, emptyIcon, emptyMessage
+    }: {
+        title: string; subtitle: string; items: any[]; icon: React.ReactNode;
+        colorClass: string; emptyIcon: React.ReactNode; emptyMessage: string;
+    }) => (
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden h-full flex flex-col">
+            <div className={`p-6 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-r ${colorClass}`}>
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-2xl bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700">
+                        {icon}
+                    </div>
+                    <div>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h3>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{subtitle}</p>
+                    </div>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Upcoming Birthdays</h3>
             </div>
-            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+
+            <div className="p-6 space-y-6 flex-grow">
                 {loading ? (
-                    <p className="text-sm text-gray-400 py-4 text-center">Loading birthdays...</p>
-                ) : birthdays && birthdays.length > 0 ? (
-                    birthdays.map((person, i) => (
-                        <motion.div
-                            key={`${person.name}-${person.familyId}-${i}`}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: i * 0.1 }}
-                            className="flex items-center justify-between p-3 rounded-xl bg-gray-50 dark:bg-gray-700/50 border border-transparent hover:border-pink-200 dark:hover:border-pink-900/50 transition-all cursor-pointer"
-                            onClick={() => router.push(`/family/${person.familyId}`)}
-                        >
-                            <div>
-                                <p className="text-sm font-bold text-gray-900 dark:text-white leading-tight">{person.name}</p>
-                                <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
-                                    {person.isHead ? "Head of Family" : "Family Member"}
-                                </p>
-                            </div>
-                            <div className="text-right">
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${person.daysUntil === 0
-                                        ? "bg-pink-100 text-pink-700 dark:bg-pink-900/40 dark:text-pink-300"
-                                        : "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
-                                    }`}>
-                                    {person.daysUntil === 0 ? "Today!" : person.daysUntil === 1 ? "Tomorrow" : "In 2 days"}
-                                </span>
-                            </div>
-                        </motion.div>
-                    ))
+                    <div className="flex flex-col items-center py-12">
+                        <div className="w-10 h-10 border-4 border-gray-100 border-t-blue-500 rounded-full animate-spin mb-4" />
+                        <p className="text-sm text-gray-400">Loading details...</p>
+                    </div>
+                ) : items && items.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {items.map((person, i) => (
+                            <motion.div
+                                key={`${person.name}-${person.familyId}-${i}`}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                className="relative flex flex-col sm:flex-row gap-5 p-5 rounded-2xl bg-gray-50 dark:bg-gray-700/30 border border-gray-100 dark:border-gray-700 group hover:shadow-md transition-all"
+                            >
+                                {/* Photo / Avatar */}
+                                <div className="flex-shrink-0 mx-auto sm:mx-0">
+                                    {person.photo ? (
+                                        <img
+                                            src={person.photo}
+                                            alt={person.name}
+                                            className="w-20 h-20 rounded-2xl object-cover border-2 border-white dark:border-gray-600 shadow-sm"
+                                        />
+                                    ) : (
+                                        <div className="w-20 h-20 rounded-2xl bg-gray-200 dark:bg-gray-700 flex items-center justify-center border-2 border-white dark:border-gray-600">
+                                            <Users className="w-7 h-7 text-gray-400" />
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Details */}
+                                <div className="flex-grow space-y-2">
+                                    <div>
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-base font-bold text-gray-900 dark:text-white uppercase truncate max-w-[150px]">
+                                                {person.name}
+                                            </h4>
+                                            {person.daysUntil !== undefined && (
+                                                <span className={`text-[9px] font-black px-2 py-0.5 rounded-full ${person.daysUntil === 0 ? "bg-pink-500 text-white" : "bg-blue-500 text-white"
+                                                    }`}>
+                                                    {person.daysUntil === 0 ? "Today!" : "In " + person.daysUntil + "d"}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
+                                            {person.isHead ? "Head of Family" : "Family Member"}
+                                        </p>
+                                    </div>
+
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-center gap-2 text-gray-500">
+                                            <Cake className="w-3 h-3 text-pink-400" />
+                                            <span className="text-[11px]">
+                                                {new Date(person.dob).toLocaleDateString()}
+                                                <span className="ml-1 font-bold text-gray-700 dark:text-gray-300">({person.age}y)</span>
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-gray-500">
+                                            <Activity className="w-3 h-3 text-blue-400" />
+                                            <a href={`tel:${person.mobile}`} className="text-[11px] hover:text-blue-600 font-medium">
+                                                {person.mobile || "N/A"}
+                                            </a>
+                                        </div>
+                                        <div className="flex items-center gap-2 text-gray-500">
+                                            <MapPin className="w-3 h-3 text-green-400" />
+                                            <span className="text-[11px] italic truncate w-full">{person.location}</span>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={() => router.push(`/family/${person.familyId}`)}
+                                        className="pt-1 text-[10px] font-bold text-blue-600 hover:underline flex items-center gap-1"
+                                    >
+                                        Profile <ChevronRight className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
                 ) : (
-                    <div className="flex flex-col items-center justify-center py-6 text-center">
-                        <div className="w-12 h-12 bg-gray-50 dark:bg-gray-700/50 rounded-full flex items-center justify-center mb-2">
-                            <Cake className="w-6 h-6 text-gray-300" />
+                    <div className="flex flex-col items-center justify-center py-12 text-center h-full">
+                        <div className="w-16 h-16 bg-gray-50 dark:bg-gray-700/50 rounded-full flex items-center justify-center mb-4 text-gray-200">
+                            {emptyIcon}
                         </div>
-                        <p className="text-sm text-gray-400">No birthdays in the next 2 days.</p>
+                        <p className="text-sm text-gray-400">{emptyMessage}</p>
                     </div>
                 )}
             </div>
         </div>
     );
+
 
     return (
         <div className="space-y-6">
@@ -163,14 +226,11 @@ export default function DashboardPage() {
                 ))}
             </div>
 
-            {/* Birthday Section - Prominent row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1">
-                    <BirthdaySection birthdays={stats?.upcomingBirthdays || []} />
-                </div>
-                <div className="lg:col-span-2">
+            {/* Top Stats Section remains */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
                     <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 px-1">Browse by Location — click any name to see families</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
                         <GeoSection
                             title="By State"
                             icon={<MapPin className="w-5 h-5 text-blue-500" />}
@@ -187,18 +247,49 @@ export default function DashboardPage() {
                         />
                     </div>
                 </div>
+
+                {/* Optional: Add recent activity or another metric here if needed */}
+                <div className="flex flex-col justify-center p-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl text-white shadow-xl">
+                    <h3 className="text-2xl font-black mb-2 italic">COMMUNITY GROWTH</h3>
+                    <p className="text-sm opacity-90 mb-6">Our community is growing stronger every day. Thank you for your contributions!</p>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/20">
+                            <p className="text-[10px] uppercase font-bold tracking-wider opacity-70">Active Now</p>
+                            <p className="text-2xl font-black">{stats?.totalMembers || 0}</p>
+                        </div>
+                        <div className="p-4 bg-white/10 rounded-2xl backdrop-blur-sm border border-white/20">
+                            <p className="text-[10px] uppercase font-bold tracking-wider opacity-70">Families</p>
+                            <p className="text-2xl font-black">{stats?.totalFamilies || 0}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-6">
-                <GeoSection
-                    title="By Village (Gram)"
-                    icon={<Home className="w-5 h-5 text-green-500" />}
-                    color="bg-green-50 dark:bg-green-900/20"
-                    items={stats?.geography?.byVillage || []}
-                    filterKey="village"
+            {/* Detailed Member Sections - Birthdays and New Joins */}
+            <div className="space-y-8">
+                <MemberDetailSection
+                    title="Upcoming Birthdays"
+                    subtitle="Celebrating our community members"
+                    items={stats?.upcomingBirthdays || []}
+                    icon={<Cake className="w-6 h-6 text-pink-500 animate-bounce" />}
+                    colorClass="from-pink-50/50 to-orange-50/50 dark:from-pink-900/10 dark:to-orange-900/10"
+                    emptyIcon={<Cake className="w-10 h-10 text-gray-300" />}
+                    emptyMessage="No birthdays today or in the next 2 days."
+                />
+
+                <MemberDetailSection
+                    title="Recently Joined"
+                    subtitle="Newest additions to our community"
+                    items={stats?.recentMembers || []}
+                    icon={<UserPlus className="w-6 h-6 text-blue-500" />}
+                    colorClass="from-blue-50/50 to-indigo-50/50 dark:from-blue-900/10 dark:to-indigo-900/10"
+                    emptyIcon={<Users className="w-10 h-10 text-gray-300" />}
+                    emptyMessage="No new members joined recently."
                 />
             </div>
         </div>
     );
 }
+
+
 

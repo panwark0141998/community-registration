@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import VillageAutocomplete from "@/components/VillageAutocomplete";
 import { INDIAN_STATES, DISTRICTS_BY_STATE, SUB_DISTRICTS_BY_DISTRICT } from "@/lib/addressConstants";
+import { compressImage } from "@/utils/imageCompression";
 
 export default function EditFamilyPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
@@ -274,11 +275,21 @@ export default function EditFamilyPage({ params }: { params: Promise<{ id: strin
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setFormData((prev) => ({
-                    ...prev,
-                    familyPhoto: reader.result as string,
-                }));
+            reader.onloadend = async () => {
+                const base64 = reader.result as string;
+                try {
+                    const compressed = await compressImage(base64, 800, 800, 0.7);
+                    setFormData((prev) => ({
+                        ...prev,
+                        familyPhoto: compressed,
+                    }));
+                } catch (err) {
+                    console.error("Compression failed", err);
+                    setFormData((prev) => ({
+                        ...prev,
+                        familyPhoto: base64,
+                    }));
+                }
             };
             reader.readAsDataURL(file);
         }
@@ -296,11 +307,21 @@ export default function EditFamilyPage({ params }: { params: Promise<{ id: strin
                 body: JSON.stringify(formData),
             });
 
-            const data = await res.json();
             if (!res.ok) {
-                throw new Error(data.error || "Failed to update family");
+                if (res.status === 413) {
+                    throw new Error("Family photo is too large. Please use an image under 5MB.");
+                }
+
+                const contentType = res.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const data = await res.json();
+                    throw new Error(data.error || "Failed to update family");
+                } else {
+                    throw new Error(`Server Error: ${res.statusText || res.status}`);
+                }
             }
 
+            // Successful
             router.push("/family");
             router.refresh();
         } catch (err: any) {
@@ -308,6 +329,7 @@ export default function EditFamilyPage({ params }: { params: Promise<{ id: strin
         } finally {
             setLoading(false);
         }
+
     };
 
     if (fetching) {

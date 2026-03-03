@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 
 const getUserFromToken = (req: NextRequest) => {
@@ -27,24 +27,33 @@ export async function GET(req: NextRequest) {
             return NextResponse.json([]);
         }
 
-        let query = supabase.from('Location').select('subDistrict, village, state, district');
-
-        if (state) {
-            query = query.filter('state', 'eq', state);
-        }
-        if (district) {
-            query = query.filter('district', 'eq', district);
-        }
-        if (subDistrict) {
-            query = query.filter('subDistrict', 'eq', subDistrict);
-        }
+        const where: any = {};
+        if (state) where.state = state;
+        if (district) where.district = district;
+        if (subDistrict) where.subDistrict = subDistrict;
         if (q) {
-            query = query.filter('village', 'ilike', `%${q}%`);
+            where.village = {
+                contains: q,
+                mode: 'insensitive'
+            };
         }
 
         // Allow larger limit if we are fetching all by subDistrict to populate a standard dropdown
         const fetchLimit = subDistrict ? 1500 : 20;
-        const data = await query.order('village', { ascending: true }).limit(fetchLimit).all();
+
+        const data = await prisma.location.findMany({
+            where,
+            select: {
+                subDistrict: true,
+                village: true,
+                state: true,
+                district: true
+            },
+            orderBy: {
+                village: 'asc'
+            },
+            take: fetchLimit
+        });
 
         // Return unique combinations
         const unique = data.reduce((acc: any[], curr: any) => {
@@ -61,3 +70,4 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
+

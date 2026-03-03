@@ -19,10 +19,17 @@ export async function GET(req: NextRequest) {
 
         // Fetch all families and members using Prisma
         const allFamilies = await prisma.family.findMany({
-            select: { id: true, state: true, district: true, village: true, representativeId: true, headOfFamily: true, headDob: true }
+            select: {
+                id: true, state: true, district: true, village: true,
+                representativeId: true, headOfFamily: true, headDob: true,
+                familyPhoto: true, contactNumber: true
+            }
         });
         const allMembers = await prisma.member.findMany({
-            select: { id: true, fullName: true, dob: true, gender: true, isAlive: true, familyId: true }
+            select: {
+                id: true, fullName: true, dob: true, gender: true,
+                isAlive: true, familyId: true, memberPhoto: true
+            }
         });
 
         const totalFamilies = allFamilies.length;
@@ -49,7 +56,13 @@ export async function GET(req: NextRequest) {
         const today = new Date();
         const upcomingBirthdays: any[] = [];
 
-        const checkBirthday = (dob: Date | null, name: string, familyId: string, isHead = false) => {
+        const calculateAge = (dob: Date) => {
+            const diffMs = Date.now() - dob.getTime();
+            const ageDate = new Date(diffMs);
+            return Math.abs(ageDate.getUTCFullYear() - 1970);
+        };
+
+        const checkBirthday = (dob: Date | null, name: string, familyId: string, extra: any, isHead = false) => {
             if (!dob) return;
             const bDate = new Date(dob);
 
@@ -65,6 +78,10 @@ export async function GET(req: NextRequest) {
                         upcomingBirthdays.push({
                             name,
                             dob: bDate,
+                            age: calculateAge(bDate),
+                            photo: extra.photo,
+                            mobile: extra.mobile,
+                            location: extra.location,
                             daysUntil: i,
                             familyId,
                             isHead
@@ -75,9 +92,18 @@ export async function GET(req: NextRequest) {
         };
 
         // Check members
-        allMembers.forEach(m => checkBirthday(m.dob, m.fullName, m.familyId));
+        allMembers.forEach(m => {
+            const family = allFamilies.find(f => f.id === m.familyId);
+            const location = family ? `${family.village}, ${family.district}, ${family.state}` : "";
+            const mobile = family ? family.contactNumber : "";
+            checkBirthday(m.dob, m.fullName, m.familyId, { photo: m.memberPhoto, location, mobile });
+        });
+
         // Check heads
-        allFamilies.forEach(f => checkBirthday(f.headDob, f.headOfFamily, f.id, true));
+        allFamilies.forEach(f => {
+            const location = `${f.village}, ${f.district}, ${f.state}`;
+            checkBirthday(f.headDob, f.headOfFamily, f.id, { photo: f.familyPhoto, location, mobile: f.contactNumber }, true);
+        });
 
         const stats: any = {
             totalFamilies,
@@ -90,8 +116,42 @@ export async function GET(req: NextRequest) {
                 byDistrict: geoStats(allFamilies, 'district'),
                 byVillage: geoStats(allFamilies, 'village')
             },
-            upcomingBirthdays: upcomingBirthdays.sort((a, b) => a.daysUntil - b.daysUntil)
+            upcomingBirthdays: upcomingBirthdays.sort((a, b) => a.daysUntil - b.daysUntil),
+            recentMembers: [] // We'll populate this below
         };
+
+        // Populate recent members (last 5)
+        const combined = [
+            ...allMembers.map(m => {
+                const family = allFamilies.find(f => f.id === m.familyId);
+                return {
+                    name: m.fullName,
+                    dob: m.dob,
+                    age: calculateAge(m.dob),
+                    photo: m.memberPhoto,
+                    location: family ? `${family.village}, ${family.district}, ${family.state}` : "",
+                    mobile: family ? family.contactNumber : "",
+                    familyId: m.familyId,
+                    isHead: false,
+                    createdAt: (m as any).createdAt || new Date()
+                };
+            }),
+            ...allFamilies.map(f => ({
+                name: f.headOfFamily,
+                dob: f.headDob,
+                age: f.headDob ? calculateAge(f.headDob) : 0,
+                photo: f.familyPhoto,
+                location: `${f.village}, ${f.district}, ${f.state}`,
+                mobile: f.contactNumber,
+                familyId: f.id,
+                isHead: true,
+                createdAt: (f as any).createdAt || new Date()
+            }))
+        ];
+
+        stats.recentMembers = combined
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            .slice(0, 5);
 
         // If user is not admin, add their personal contribution stats
         if (user.role !== "admin") {
@@ -100,6 +160,7 @@ export async function GET(req: NextRequest) {
         }
 
         return NextResponse.json(stats, { status: 200 });
+
     } catch (error) {
         console.error("Stats Fetch Error:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

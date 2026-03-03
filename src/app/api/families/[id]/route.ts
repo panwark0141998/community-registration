@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 
 const getUserFromToken = (req: NextRequest) => {
@@ -19,26 +19,18 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
         const { id } = await params;
 
-        const family = await supabase.from('Family')
-            .select('*')
-            .eq('id', id)
-            .single();
+        const family = await prisma.family.findUnique({
+            where: { id },
+            include: { members: true }
+        });
 
         if (!family) {
             return NextResponse.json({ error: "Family not found" }, { status: 404 });
         }
 
-        // Fetch members separately to avoid join timeouts
-        const membersRes = await supabase.from('Member')
-            .select('*')
-            .eq('familyId', family.id)
-            .all();
-
-        const members = Array.isArray(membersRes) ? membersRes : [];
-
         return NextResponse.json({
             family,
-            members: members.map((m: any) => ({ ...m, id: m.id }))
+            members: family.members
         }, { status: 200 });
     } catch (error: any) {
         console.error("Family Fetch Error:", error);
@@ -55,10 +47,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         const body = await req.json();
         const { address, members, ...restBody } = body;
 
-        const family = await supabase.from('Family')
-            .select('*')
-            .eq('id', id)
-            .single();
+        const family = await prisma.family.findUnique({
+            where: { id }
+        });
 
         if (!family) {
             return NextResponse.json({ error: "Family not found" }, { status: 404 });
@@ -68,20 +59,26 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
-        // Only allow updating certain fields and flatten address
+        // Flatten address and exclude ID/computed fields
         const updateData: any = {
             ...restBody,
             ...(address || {})
         };
+
+        // Remove fields that shouldn't be updated directly via this object
+        delete updateData.id;
+        delete updateData.createdAt;
+        delete updateData.updatedAt;
 
         if (updateData.headDob && updateData.headDob !== "") {
             const date = new Date(updateData.headDob);
             updateData.headDob = isNaN(date.getTime()) ? null : date;
         }
 
-        const updatedFamily = await supabase.from('Family')
-            .update(updateData)
-            .eq('id', id);
+        const updatedFamily = await prisma.family.update({
+            where: { id },
+            data: updateData
+        });
 
         return NextResponse.json({ message: "Family updated", family: updatedFamily }, { status: 200 });
     } catch (error: any) {
@@ -97,10 +94,9 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
         const { id } = await params;
 
-        const family = await supabase.from('Family')
-            .select('*')
-            .eq('id', id)
-            .single();
+        const family = await prisma.family.findUnique({
+            where: { id }
+        });
 
         if (!family) {
             return NextResponse.json({ error: "Family not found" }, { status: 404 });
@@ -110,10 +106,10 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
             return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
-        // Delete the family (Cascade delete will also delete all members if configured in DB)
-        await supabase.from('Family')
-            .delete()
-            .eq('id', id);
+        // Delete the family (Cascade delete will also delete all members if configured in schema.prisma)
+        await prisma.family.delete({
+            where: { id }
+        });
 
         return NextResponse.json({ message: "Family deleted successfully" }, { status: 200 });
     } catch (error: any) {
@@ -121,3 +117,4 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
         return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 });
     }
 }
+

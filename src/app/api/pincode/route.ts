@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
     try {
@@ -25,20 +25,20 @@ export async function GET(req: NextRequest) {
             const villageNames = postOffices.map((po: any) => po.Name);
 
             try {
-                // Cross-reference with our Supabase Location DB to find the exact Tehsil
+                // Cross-reference with our Prisma Location DB to find the exact Tehsil
                 if (villageNames && villageNames.length > 0) {
                     for (let i = 0; i < Math.min(villageNames.length, 5); i++) {
                         const vName = villageNames[i].split(" ")[0] + "%"; // match the first word
-                        const locData = await supabase
-                            .from('Location')
-                            .select('subDistrict')
-                            .ilike('district', info.District)
-                            .ilike('village', vName)
-                            .limit(1)
-                            .all();
+                        const locData = await prisma.location.findFirst({
+                            where: {
+                                district: { contains: info.District, mode: 'insensitive' },
+                                village: { startsWith: villageNames[i].split(" ")[0], mode: 'insensitive' }
+                            },
+                            select: { subDistrict: true }
+                        });
 
-                        if (locData && locData.length > 0 && locData[0].subDistrict) {
-                            activeSubDistrict = locData[0].subDistrict;
+                        if (locData && locData.subDistrict) {
+                            activeSubDistrict = locData.subDistrict;
                             break;
                         }
                     }
@@ -60,3 +60,4 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
+

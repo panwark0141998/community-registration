@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import VillageAutocomplete from "@/components/VillageAutocomplete";
 import { INDIAN_STATES, DISTRICTS_BY_STATE, SUB_DISTRICTS_BY_DISTRICT } from "@/lib/addressConstants";
+import { compressImage } from "@/utils/imageCompression";
 
 export default function AddMemberPage() {
     const router = useRouter();
@@ -152,11 +153,21 @@ export default function AddMemberPage() {
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setFormData((prev) => ({
-                    ...prev,
-                    memberPhoto: reader.result as string,
-                }));
+            reader.onloadend = async () => {
+                const base64 = reader.result as string;
+                try {
+                    const compressed = await compressImage(base64, 800, 800, 0.7);
+                    setFormData((prev) => ({
+                        ...prev,
+                        memberPhoto: compressed,
+                    }));
+                } catch (err) {
+                    console.error("Compression failed", err);
+                    setFormData((prev) => ({
+                        ...prev,
+                        memberPhoto: base64,
+                    }));
+                }
             };
             reader.readAsDataURL(file);
         }
@@ -182,17 +193,28 @@ export default function AddMemberPage() {
                 }),
             });
 
-            const data = await res.json();
             if (!res.ok) {
-                throw new Error(data.error || "Failed to add member");
+                if (res.status === 413) {
+                    throw new Error("Member photo is too large. Please use an image under 5MB.");
+                }
+
+                const contentType = res.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const data = await res.json();
+                    throw new Error(data.error || "Failed to add member");
+                } else {
+                    throw new Error(`Server Error: ${res.statusText || res.status}`);
+                }
             }
 
+            // Successful
             router.push("/family");
         } catch (err: any) {
             setError(err.message);
         } finally {
             setLoading(false);
         }
+
     };
 
     return (

@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useLanguage } from "@/context/LanguageContext";
 import VillageAutocomplete from "@/components/VillageAutocomplete";
 import { INDIAN_STATES, DISTRICTS_BY_STATE, SUB_DISTRICTS_BY_DISTRICT } from "@/lib/addressConstants";
+import { compressImage } from "@/utils/imageCompression";
 
 export default function EditMemberPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
@@ -165,11 +166,22 @@ export default function EditMemberPage({ params }: { params: Promise<{ id: strin
         const file = e.target.files?.[0];
         if (file) {
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setFormData((prev) => ({
-                    ...prev,
-                    memberPhoto: reader.result as string,
-                }));
+            reader.onloadend = async () => {
+                const base64 = reader.result as string;
+                try {
+                    const compressed = await compressImage(base64, 800, 800, 0.7);
+                    setFormData((prev) => ({
+                        ...prev,
+                        memberPhoto: compressed,
+                    }));
+                } catch (err) {
+                    console.error("Compression failed", err);
+                    // Fallback to original if compression fails
+                    setFormData((prev) => ({
+                        ...prev,
+                        memberPhoto: base64,
+                    }));
+                }
             };
             reader.readAsDataURL(file);
         }
@@ -187,15 +199,29 @@ export default function EditMemberPage({ params }: { params: Promise<{ id: strin
                 body: JSON.stringify(formData),
             });
 
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Failed to update member");
+            if (!res.ok) {
+                // If it's 413, the photo is likely too large
+                if (res.status === 413) {
+                    throw new Error("The member photo is too large for the server. Please use a smaller image (under 5MB).");
+                }
 
+                const contentType = res.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const data = await res.json();
+                    throw new Error(data.error || "Failed to update member");
+                } else {
+                    throw new Error(`Server Error: ${res.statusText || res.status}`);
+                }
+            }
+
+            // If we reach here, it's successful
             router.back();
         } catch (err: any) {
             setError(err.message);
         } finally {
             setSubmitting(false);
         }
+
     };
 
     if (loading) {

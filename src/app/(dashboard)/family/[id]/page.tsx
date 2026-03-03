@@ -64,12 +64,17 @@ export default function FamilyDetailsPage({ params }: { params: Promise<{ id: st
         setIsDeleting(memberId);
         try {
             const res = await fetch(`/api/members/${memberId}`, { method: "DELETE" });
-            if (!res.ok) throw new Error("Failed to delete member");
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to delete member");
+            }
 
             // Refresh data
             window.location.reload();
         } catch (err: any) {
-            alert(err.message);
+            console.error("Delete Member Error:", err);
+            alert(`${t("error")}: ${err.message}`);
         } finally {
             setIsDeleting(null);
         }

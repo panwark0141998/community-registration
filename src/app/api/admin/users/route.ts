@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 
 const getUserFromToken = (req: NextRequest) => {
@@ -20,12 +20,12 @@ export async function GET(req: NextRequest) {
         }
 
         // Fetch all family reps (limited to 50 for performance until pagination is implemented)
-        const users = await supabase.from('User')
-            .select('id, name, email, phone, role, status, createdAt, updatedAt')
-            .eq('role', 'family_rep')
-            .order('createdAt', { ascending: false })
-            .limit(50)
-            .all();
+        const users = await prisma.user.findMany({
+            where: { role: 'family_rep' },
+            select: { id: true, name: true, email: true, phone: true, role: true, status: true, createdAt: true, updatedAt: true },
+            orderBy: { createdAt: 'desc' },
+            take: 50
+        });
 
         // Map id to _id for frontend compatibility since we refactored
         const formattedUsers = users.map((u: any) => ({ ...u, _id: u.id }));
@@ -36,3 +36,4 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
+
