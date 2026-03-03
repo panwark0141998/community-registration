@@ -25,10 +25,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
         if (!member) return NextResponse.json({ error: "Member not found" }, { status: 404 });
 
-        // Authorization check
-        if (user.role !== "admin" && member.family?.representativeId !== user.userId) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        }
+        // Members can be viewed by any logged-in user
+        // But we keep the check for specific roles if we want to limit to just family/admin
+        // For now, as requested, other users should be able to view family profile.
 
         return NextResponse.json(member);
     } catch (error) {

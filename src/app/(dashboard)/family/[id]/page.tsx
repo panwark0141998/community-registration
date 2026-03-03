@@ -2,7 +2,8 @@
 
 import { useEffect, useState, use } from "react";
 import Link from "next/link";
-import { Users, MapPin, Phone, ArrowLeft, Eye, Edit2, Trash2, Loader2, Download } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Users, MapPin, Phone, ArrowLeft, Eye, Edit2, Trash2, Loader2, Download, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import { exportFullFamilyPDF } from "@/utils/pdfExport";
@@ -10,11 +11,13 @@ import { MemberProfilePage } from "@/components/MemberProfilePage";
 
 export default function FamilyDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
+    const router = useRouter();
     const [familyData, setFamilyData] = useState<any>(null);
     const [members, setMembers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
     const [isDeleting, setIsDeleting] = useState<string | null>(null);
+    const [currentUser, setCurrentUser] = useState<any>(null);
     const { t } = useLanguage();
 
     useEffect(() => {
@@ -237,6 +240,8 @@ export default function FamilyDetailsPage({ params }: { params: Promise<{ id: st
                                 <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                                     {displayMembers.map((member) => {
                                         const isDummy = member.id.toString().startsWith("head-dummy");
+                                        const isAuthorized = currentUser?.role === "admin" || familyData?.representativeId === currentUser?.id;
+
                                         return (
                                             <tr key={member.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                                                 <td className="px-6 py-4">
@@ -266,38 +271,51 @@ export default function FamilyDetailsPage({ params }: { params: Promise<{ id: st
                                                 </td>
                                                 <td className="px-6 py-4 no-pdf">
                                                     <div className="flex items-center gap-2">
-                                                        {!isDummy ? (
+                                                        {isAuthorized ? (
                                                             <>
-                                                                <button
-                                                                    title={t("viewDetails")}
-                                                                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors dark:text-blue-400 dark:hover:bg-blue-900/30"
-                                                                >
-                                                                    <Eye className="w-4 h-4" />
-                                                                </button>
-                                                                <Link
-                                                                    href={`/family/edit-member/${member.id}`}
-                                                                    title={t("editMember")}
-                                                                    className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors dark:text-amber-400 dark:hover:bg-amber-900/30"
-                                                                >
-                                                                    <Edit2 className="w-4 h-4" />
-                                                                </Link>
-                                                                <button
-                                                                    onClick={() => handleDeleteMember(member.id)}
-                                                                    disabled={isDeleting === member.id}
-                                                                    title={t("deleteMember")}
-                                                                    className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors dark:text-red-400 dark:hover:bg-red-900/30 disabled:opacity-50"
-                                                                >
-                                                                    {isDeleting === member.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                                                                </button>
+                                                                {!isDummy ? (
+                                                                    <>
+                                                                        <button
+                                                                            title={t("viewDetails")}
+                                                                            onClick={() => router.push(`/member/${member.id}`)}
+                                                                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors dark:text-blue-400 dark:hover:bg-blue-900/30"
+                                                                        >
+                                                                            <Eye className="w-4 h-4" />
+                                                                        </button>
+                                                                        <Link
+                                                                            href={`/family/edit-member/${member.id}`}
+                                                                            title={t("editMember")}
+                                                                            className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors dark:text-amber-400 dark:hover:bg-amber-900/30"
+                                                                        >
+                                                                            <Edit2 className="w-4 h-4" />
+                                                                        </Link>
+                                                                        <button
+                                                                            onClick={() => handleDeleteMember(member.id)}
+                                                                            disabled={isDeleting === member.id}
+                                                                            title={t("deleteMember")}
+                                                                            className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors dark:text-red-400 dark:hover:bg-red-900/30 disabled:opacity-50"
+                                                                        >
+                                                                            {isDeleting === member.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                                                                        </button>
+                                                                    </>
+                                                                ) : (
+                                                                    <Link
+                                                                        href={`/family/edit/${familyData.id}`}
+                                                                        className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors dark:text-amber-400 dark:hover:bg-amber-900/30"
+                                                                        title={t("editHead")}
+                                                                    >
+                                                                        <Edit2 className="w-4 h-4" />
+                                                                    </Link>
+                                                                )}
                                                             </>
                                                         ) : (
-                                                            <Link
-                                                                href={`/family/edit/${familyData.id}`}
-                                                                className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors dark:text-amber-400 dark:hover:bg-amber-900/30"
-                                                                title={t("editHead")}
+                                                            <button
+                                                                title={t("viewDetails")}
+                                                                onClick={() => router.push(`/member/${member.id}`)}
+                                                                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors dark:text-blue-400 dark:hover:bg-blue-900/30"
                                                             >
-                                                                <Edit2 className="w-4 h-4" />
-                                                            </Link>
+                                                                <Eye className="w-4 h-4" />
+                                                            </button>
                                                         )}
                                                     </div>
                                                 </td>
