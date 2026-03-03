@@ -144,7 +144,11 @@ const translations: Translations = {
         userStatus: "Account Status",
         pending: "Pending Approval",
         approved: "Approved",
-        rejected: "Access Denied"
+        rejected: "Access Denied",
+        changeName: "Change Name",
+        editName: "Edit Name",
+        newName: "New Name",
+        nameUpdated: "Name updated successfully"
     },
     hi: {
         dashboard: "डैशबोर्ड",
@@ -279,7 +283,11 @@ const translations: Translations = {
         userStatus: "खाता स्थिति",
         pending: "अनुमोदन लंबित",
         approved: "अनुमोदित",
-        rejected: "पहुंच अस्वीकृत"
+        rejected: "पहुंच अस्वीकृत",
+        changeName: "नाम बदलें",
+        editName: "नाम संपादित करें",
+        newName: "नया नाम",
+        nameUpdated: "नाम सफलतापूर्वक अपडेट किया गया"
     },
     gu: {
         dashboard: "ડેશબોર્ડ",
@@ -399,7 +407,26 @@ const translations: Translations = {
         downloadPDF: "પીડીએફ ડાઉનલોડ કરો",
         community: "સમુદાય",
         relationships: "સંબંધો",
-        contactAndAddress: "સંપર્ક અને સરનામું"
+        contactAndAddress: "સંપર્ક અને સરનામું",
+        profile: "મારી પ્રોફાઇલ",
+        security: "સુરક્ષા",
+        changePassword: "પાસવર્ડ બદલો",
+        currentPassword: "વર્તમાન પાસવર્ડ",
+        newPassword: "નવો પાસવર્ડ",
+        confirmPassword: "નવા પાસવર્ડની પુષ્ટિ કરો",
+        updatePassword: "પાસવર્ડ અપડેટ કરો",
+        passwordUpdated: "પાસવર્ડ સફળતાપૂર્વક અપડેટ થયો",
+        email: "ઈમેલ સરનામું",
+        phone: "ફોન નંબર",
+        role: "ખાતાની ભૂમિકા",
+        userStatus: "ખાતાની સ્થિતિ",
+        pending: "મંજૂરી બાકી",
+        approved: "મંજૂર",
+        rejected: "પ્રવેશ નકારવામાં આવ્યો",
+        changeName: "નામ બદલો",
+        editName: "નામ સંપાદિત કરો",
+        newName: "નવું નામ",
+        nameUpdated: "નામ સફળતાપૂર્વક અપડેટ થયું"
     }
 };
 

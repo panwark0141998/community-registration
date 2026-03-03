@@ -92,7 +92,45 @@ export default function ProfilePage() {
                                 </div>
                             </div>
 
-                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">{user?.name}</h2>
+                            <div className="flex items-center justify-between mb-1">
+                                {isEditingName ? (
+                                    <form onSubmit={handleUpdateName} className="flex flex-col w-full gap-2">
+                                        <input
+                                            type="text"
+                                            value={newName}
+                                            onChange={(e) => setNewName(e.target.value)}
+                                            className="w-full p-2 text-lg font-bold text-gray-900 border border-blue-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                            autoFocus
+                                        />
+                                        <div className="flex gap-2">
+                                            <button
+                                                type="submit"
+                                                className="text-[10px] font-bold bg-blue-600 text-white px-3 py-1 rounded-md"
+                                            >
+                                                {t("save")}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => { setIsEditingName(false); setNewName(user.name); }}
+                                                className="text-[10px] font-bold bg-gray-200 text-gray-700 px-3 py-1 rounded-md"
+                                            >
+                                                {t("cancel")}
+                                            </button>
+                                        </div>
+                                    </form>
+                                ) : (
+                                    <>
+                                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">{user?.name}</h2>
+                                        <button
+                                            onClick={() => setIsEditingName(true)}
+                                            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-400 hover:text-blue-600 transition-colors"
+                                            title={t("editName")}
+                                        >
+                                            <Shield className="w-4 h-4" /> {/* Swap with more appropriate icon if needed, but Shield is already imported */}
+                                        </button>
+                                    </>
+                                )}
+                            </div>
                             <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 font-medium uppercase tracking-wider">{user?.role}</p>
 
                             <div className="space-y-4 pt-4 border-t border-gray-50 dark:border-gray-700">
@@ -115,7 +153,7 @@ export default function ProfilePage() {
                                     <div>
                                         <p className="text-[10px] text-gray-400 uppercase font-bold tracking-tighter leading-none mb-1">{t("userStatus")}</p>
                                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${user?.status === "approved" ? "bg-green-100 text-green-700" :
-                                                user?.status === "pending" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"
+                                            user?.status === "pending" ? "bg-amber-100 text-amber-700" : "bg-red-100 text-red-700"
                                             }`}>
                                             {t(user?.status || "pending")}
                                         </span>
@@ -179,8 +217,8 @@ export default function ProfilePage() {
 
                             {message.text && (
                                 <div className={`flex items-center gap-3 p-4 rounded-xl ${message.type === "success"
-                                        ? "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"
-                                        : "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
+                                    ? "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"
+                                    : "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400"
                                     }`}>
                                     {message.type === "success" ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                                     <p className="text-sm font-medium">{message.text}</p>
