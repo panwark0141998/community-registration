@@ -118,5 +118,33 @@ export const supabase = {
                 }
             })
         };
+    },
+    storage: {
+        from: (bucket: string) => ({
+            upload: async (path: string, file: File | Blob) => {
+                const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${path}`;
+                const formData = new FormData();
+                formData.append('file', file);
+
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "apikey": SUPABASE_ANON_KEY,
+                        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                    },
+                    body: file, // Supabase expects the raw file body
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || "Upload failed");
+                }
+
+                return await response.json();
+            },
+            getPublicUrl: (path: string) => {
+                return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${path}`;
+            }
+        })
     }
 };
