@@ -38,106 +38,134 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-900">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="w-full max-w-md p-8 bg-white rounded-2xl shadow-xl dark:bg-gray-800"
+        <div className="relative flex items-center justify-center min-h-screen overflow-hidden">
+            {/* Background Image with Overlay */}
+            <div
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                style={{
+                    backgroundImage: "url('/assets/login-bg.png')",
+                    backgroundColor: "#020617"
+                }}
             >
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                        Welcome Back
-                    </h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-2">
-                        Sign in to access your family portal
-                    </p>
+                <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[2px]"></div>
+            </div>
+
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="relative w-full max-w-md p-10 mx-4"
+            >
+                {/* Glass Card */}
+                <div className="absolute inset-0 bg-white/5 dark:bg-black/40 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
                 </div>
 
-                {error && (
-                    <div className="mb-4 p-3 text-sm text-red-800 bg-red-100 rounded-lg dark:bg-gray-700 dark:text-red-400" role="alert">
-                        {error}
+                <div className="relative">
+                    <div className="text-center mb-10">
+                        <motion.div
+                            initial={{ y: -10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: 0.2 }}
+                        >
+                            <h1 className="text-4xl font-extrabold text-white tracking-tight drop-shadow-md">
+                                Welcome Back
+                            </h1>
+                            <p className="text-white/80 mt-3 font-medium">
+                                Sign in to access your family portal
+                            </p>
+                        </motion.div>
                     </div>
-                )}
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label
-                            htmlFor="email"
-                            className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                    {error && (
+                        <motion.div
+                            initial={{ x: -10, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            className="mb-6 p-4 text-sm text-red-200 bg-red-900/40 border border-red-500/50 rounded-xl backdrop-blur-md"
+                            role="alert"
                         >
-                            Email Address
-                        </label>
-                        <input
-                            type="email"
-                            id="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                            placeholder="name@company.com"
-                            required
-                        />
-                    </div>
-                    <div>
-                        <label
-                            htmlFor="password"
-                            className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                        >
-                            Password
-                        </label>
-                        <input
-                            type="password"
-                            id="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="bg-gray-50 border border-gray-300 text-gray-900 rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                            placeholder="••••••••"
-                            required
-                        />
-                    </div>
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-start">
-                            <div className="flex items-center h-5">
+                            {error}
+                        </motion.div>
+                    )}
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="space-y-2">
+                            <label
+                                htmlFor="email"
+                                className="block text-sm font-semibold text-white/90 ml-1"
+                            >
+                                Email Address
+                            </label>
+                            <input
+                                type="email"
+                                id="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="bg-white/10 border border-white/20 text-white placeholder:text-white/40 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent block w-full p-3.5 outline-none transition-all hover:bg-white/20 dark:bg-black/30 dark:border-white/10"
+                                placeholder="name@company.com"
+                                required
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label
+                                htmlFor="password"
+                                className="block text-sm font-semibold text-white/90 ml-1"
+                            >
+                                Password
+                            </label>
+                            <input
+                                type="password"
+                                id="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="bg-white/10 border border-white/20 text-white placeholder:text-white/40 rounded-xl focus:ring-2 focus:ring-blue-400 focus:border-transparent block w-full p-3.5 outline-none transition-all hover:bg-white/20 dark:bg-black/30 dark:border-white/10"
+                                placeholder="••••••••"
+                                required
+                            />
+                        </div>
+                        <div className="flex items-center justify-between px-1">
+                            <div className="flex items-center">
                                 <input
                                     id="remember"
-                                    aria-describedby="remember"
                                     type="checkbox"
-                                    className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-blue-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-blue-600 dark:ring-offset-gray-800"
+                                    className="w-4 h-4 border border-white/30 rounded bg-white/10 focus:ring-blue-400 text-blue-500 transition-colors"
                                 />
-                            </div>
-                            <div className="ml-3 text-sm">
                                 <label
                                     htmlFor="remember"
-                                    className="text-gray-500 dark:text-gray-300"
+                                    className="ml-2.5 text-sm font-medium text-white/80 cursor-pointer"
                                 >
                                     Remember me
                                 </label>
                             </div>
+                            <a
+                                href="#"
+                                className="text-sm font-semibold text-blue-300 hover:text-blue-200 transition-colors"
+                            >
+                                Forgot password?
+                            </a>
                         </div>
-                        <a
-                            href="#"
-                            className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-500"
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="group relative w-full overflow-hidden text-white bg-blue-600 hover:bg-blue-500 focus:ring-4 focus:outline-none focus:ring-blue-400 font-bold rounded-xl text-md px-5 py-4 text-center transition-all disabled:opacity-70 shadow-lg shadow-blue-900/40 active:scale-95"
                         >
-                            Forgot password?
-                        </a>
-                    </div>
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full text-white bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-                    >
-                        {loading ? "Signing in..." : "Sign in"}
-                    </button>
-                    <p className="text-sm font-light text-gray-500 dark:text-gray-400 text-center">
-                        Don’t have an account yet?{" "}
-                        <Link
-                            href="/register"
-                            className="font-medium text-blue-600 hover:underline dark:text-blue-500"
-                        >
-                            Sign up
-                        </Link>
-                    </p>
-                </form>
+                            <span className="relative z-10">
+                                {loading ? "Signing in..." : "Sign In to Portal"}
+                            </span>
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        </button>
+
+                        <p className="text-sm font-medium text-white/60 text-center pt-2">
+                            Don’t have an account yet?{" "}
+                            <Link
+                                href="/register"
+                                className="text-blue-300 hover:text-blue-200 underline decoration-blue-300/30 underline-offset-4 transition-all"
+                            >
+                                Create Account
+                            </Link>
+                        </p>
+                    </form>
+                </div>
             </motion.div>
         </div>
     );
