@@ -47,7 +47,7 @@ export default function LoginPage() {
                     backgroundColor: "#020617"
                 }}
             >
-                <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-[2px]"></div>
+                <div className="absolute inset-0 bg-slate-950/20"></div>
             </div>
 
             <motion.div
@@ -56,8 +56,8 @@ export default function LoginPage() {
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 className="relative w-full max-w-md p-10 mx-4"
             >
-                {/* Glass Card */}
-                <div className="absolute inset-0 bg-white/5 dark:bg-black/40 backdrop-blur-2xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
+                {/* Glass Card Without Blur */}
+                <div className="absolute inset-0 bg-black/60 border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
                 </div>
 
