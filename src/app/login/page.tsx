@@ -56,9 +56,9 @@ export default function LoginPage() {
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 className="relative w-full max-w-md p-10 mx-4"
             >
-                {/* Glass Card Without Blur */}
-                <div className="absolute inset-0 bg-black/60 border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                {/* Transparent Container */}
+                <div className="absolute inset-0 bg-transparent rounded-3xl overflow-hidden">
+                    {/* Optional: Keep a very subtle gradient if it helps readability, but removing entirely based on 'transparent' request */}
                 </div>
 
                 <div className="relative">
